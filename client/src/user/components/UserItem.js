@@ -1,6 +1,5 @@
 import Avatar from '../../shared/components/UIElements/Avatar'
 import { Link } from 'react-router-dom'
-import './UserComponents.css'
 import Card from '../../shared/components/UIElements/Card'
 
 function UserItem({ id, name, image, placesCount }) {
