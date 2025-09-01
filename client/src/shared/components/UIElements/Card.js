@@ -1,6 +1,4 @@
-import React from 'react';
-
-import './Card.css';
+import './UIElements.css';
 
 const Card = props => {
   return (
