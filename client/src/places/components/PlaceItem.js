@@ -1,15 +1,25 @@
 import { useState } from "react"
-import Button from "../../shared/components/FormElements/Button/Button"
+import Button from "../../shared/components/FormElements/Button"
 import Card from "../../shared/components/UIElements/Card"
 import Modal from "../../shared/components/UIElements/Modal"
 import Map from "../../shared/components/UIElements/Map"
+import { useAuth } from "../../shared/context/authContext"
 
 const PlaceItem = ({ id, image, title, description, address, coordinates }) => {
-
+ const auth = useAuth();
     const [showMap, setShowMap] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+
+    const openConfirmModalHandler = () => setShowConfirmModal(true)
+    const closeConfirmModalHandler = () => setShowConfirmModal(false)
 
     const openMapHandler = () => setShowMap(true)
     const closeMapHandler = () => setShowMap(false)
+
+    const confirmDeleteHandler = () => {
+        setShowConfirmModal(false)
+        console.log('DELETING...')
+    }
 
     return (
         <>
@@ -25,8 +35,12 @@ const PlaceItem = ({ id, image, title, description, address, coordinates }) => {
                     </div>
                     <div className='place-item__actions'>
                         <Button inverse onClick={openMapHandler}>View on Map</Button>
-                        <Button to={`/places/${id}`}>Edit</Button>
-                        <Button danger>Delete</Button>
+                        {auth.user && <>
+                            <Button to={`/places/${id}`}>Edit</Button>
+                            <Button onClick={openConfirmModalHandler} danger>Delete</Button>
+                        </>
+                        
+                        }
                     </div>
                 </Card>
             </li>
@@ -34,6 +48,17 @@ const PlaceItem = ({ id, image, title, description, address, coordinates }) => {
                 <div className='map-container'>
                     <Map center={coordinates} zoom={16}/>
                 </div>
+            </Modal>
+            <Modal 
+                header="Are you sure?" 
+                show={showConfirmModal} 
+                onCancel={closeConfirmModalHandler} 
+                footerClass='place-item__modal-actions' 
+                footer={<>
+                    <Button danger onClick={confirmDeleteHandler}>Delete</Button>
+                    <Button inverse onClick={closeConfirmModalHandler}>Cancel</Button>
+                </>}>
+                <p>Are you sure you want to delete this place?</p>
             </Modal>
         </>
     )

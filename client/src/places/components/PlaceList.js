@@ -1,3 +1,4 @@
+import Button from '../../shared/components/FormElements/Button';
 import Card from '../../shared/components/UIElements/Card';
 import PlaceItem from './PlaceItem';
 import './PlacesComponents.css';
@@ -6,9 +7,9 @@ const PlaceList = ({places}) => {
     if(places.length === 0){
         return (
             <div className='place-list center'>
-                <Card>
+                <Card className='center'>
                     <h2>No places found. Maybe create one?</h2>
-                    <button>Share Place</button>
+                    <Button className='place-item' to="/places/new">Share Place</Button>
                 </Card>
             </div>
         )
