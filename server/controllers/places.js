@@ -1,51 +1,38 @@
 const HttpError = require("../models/httpError");
-const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 const getCoordsForAddress = require("../Util/location");
+const Place = require("../models/Place");
+const User = require('../models/user');
+const { default: mongoose } = require("mongoose");
 
-let DUMMY_PLACES = [
-    {
-        id: 'p1',
-        title: 'Empire State Building',
-        description: 'Famous skyscraper in New York City',
-        location: { lat: 40.7484405, lng: -73.9878584 },
-        address: '20 W 34th St, New York, NY 10001',
-        creator: 'u1'
-    },
-    {
-        id: 'p2',
-        title: 'Eiffel Tower',
-        description: 'Iconic tower in Paris',
-        location: { lat: 48.8583701, lng: 2.2922926 },
-        address: 'Champ de Mars, 5 Avenue Anatole France, 75007 Paris, France',
-        creator: 'u2'
-    },
-    {
-        id: 'p3',
-        title: 'Colosseum',
-        description: 'Ancient amphitheater in Rome',
-        location: { lat: 41.8902102, lng: 12.4922309 },
-        address: 'Piazza del Colosseo, 1, 00184 Roma RM, Italy',
-        creator: 'u1'
-    }
-];
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid;
-    const place = DUMMY_PLACES.find(p => p.id === placeId);
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch (err) {
+        const error = new HttpError('Something went wrong, could not find a place.', 500);
+        return next(error);
+    }
     if (!place) {
         return next(new HttpError('Place not found.', 404));
     }
-    res.json({ place });
+    res.json({ place: place.toObject({ getters: true }) });
 };
 
-const getPlacesByUserId = (req, res, next) => {
+const getPlacesByUserId = async (req, res, next) => {
     const userId = req.params.uid;
-    const places = DUMMY_PLACES.filter(p => p.creator === userId);
+    let places;
+    try {
+        places = await Place.find({ creator: userId });
+    } catch (err) {
+        return next(new HttpError('Fetching places failed, please try again later.', 500));
+    }
     if (places.length === 0) {
         return next(new HttpError('No places found for this user.', 404));
     }
-    res.json({ places });
+    res.json({ places: places.map(place => place.toObject({ getters: true })) });
 };
 
 const addNewPlace = async (req, res, next) => {
@@ -61,45 +48,91 @@ const addNewPlace = async (req, res, next) => {
     } catch (error) {
         return next(error);
     }
-    const newPlace = {
-        id: uuidv4(),
+
+    const newPlace = Place({
         title,
         description,
-        location: coords, // Placeholder for actual geocoding
         address,
+        location: coords,
+        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
         creator
-    };
-    DUMMY_PLACES.push(newPlace);
+    });
+
+    let user;
+    try {
+        user = await User.findById(creator);
+    } catch(err) {
+        return next(new HttpError("Creating place failed, please try again", 500))
+    }
+
+    if(!user) {
+        return next(new HttpError("User not exist, please try again", 404))
+    }
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await newPlace.save(({ session: sess }));
+        user.places.push(newPlace); //spectial push from mongoose
+        await user.save();
+        await sess.commitTransaction();
+    } catch(err) {
+        const error = new HttpError('Creating place failed, please try again.', 500);
+        return next(error);
+    }
+    
     res.status(201).json({ place: newPlace });
 }
 
-const updatePlace = (req, res, next) => {
+const updatePlace = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return next(new HttpError('Invalid inputs passed, please check your data.', 422));
     }
     const placeId = req.params.pid;
     const { title, description } = req.body;
-    const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId);
-    if (placeIndex === -1) {
-        return next(new HttpError('Place not found.', 404));
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch (err) {
+        return next(new HttpError('Something went wrong, could not update place.', 500));
     }
-    DUMMY_PLACES[placeIndex] = {
-        ...DUMMY_PLACES[placeIndex],
-        title: title || DUMMY_PLACES[placeIndex].title,
-        description: description || DUMMY_PLACES[placeIndex].description
-    };
-    res.json({ place: DUMMY_PLACES[placeIndex] });
+    place.title = title;
+    place.description = description;
+
+    try {
+        await place.save();
+    } catch (err) {
+        return next(new HttpError('Something went wrong, could not update place.', 500));
+    }
+    res.status(200).json({ place: place.toObject({ getters: true }) });
 }
 
-const deletePlace = (req, res, next) => {
+const deletePlace = async (req, res, next) => {
     const placeId = req.params.pid;
-    // DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId);
-    const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId);
-    if (placeIndex === -1) {
+
+    let place;
+    try {
+        place = await Place.findById(placeId).populate('creator');
+    } catch (err) {
+        return next(new HttpError('Something went wrong, could not delete place.', 500));
+    }
+
+    if (!place) {
         return next(new HttpError('Place not found.', 404));
     }
-    DUMMY_PLACES.splice(placeIndex, 1);
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await place.deleteOne({ session: sess});
+        place.creator.places.pull(place);
+        await place.creator.save({ session: sess});
+        await sess.commitTransaction()
+    } catch (err) {
+        return next(new HttpError('Something went wrong, could not delete place.', 500));
+    }
+
     res.status(200).json({ message: 'Place deleted.' });
 }
 
