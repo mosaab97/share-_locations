@@ -79,7 +79,6 @@ const UpdatePlace = () => {
 
     const placeUpdateSubmitHandler = event => {
         event.preventDefault();
-        console.log(state.inputs);
     }
 
     return <form className='place-form' onSubmit={placeUpdateSubmitHandler}>

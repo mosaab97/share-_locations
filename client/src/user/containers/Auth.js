@@ -23,7 +23,6 @@ function Auth() {
 
     const authSubmitHandler = event => {
         event.preventDefault();
-        console.log(state.inputs);
         if(state.isValid) {
             auth.login({name: 'Max', id: 'u1' });
         }

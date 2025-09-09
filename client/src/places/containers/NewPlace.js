@@ -24,7 +24,6 @@ const NewPlace = () => {
 
   const placeSubmitHandler = event => {
     event.preventDefault();
-    console.log('PLACE SUBMITTED', state.inputs);
   }
 
   

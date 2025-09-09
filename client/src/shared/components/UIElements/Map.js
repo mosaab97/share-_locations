@@ -10,7 +10,6 @@ const Map = (props) => {
             console.error("Google Maps script not loaded yet!");
             return;
         }
-        console.log(window.google);
         const map = new window.google.maps.Map(mapRef.current, {
             center: center,
             zoom: zoom

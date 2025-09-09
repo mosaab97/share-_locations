@@ -34,8 +34,6 @@ const Input = ({id, onInput, type, placeholder, validators, rows, label,errorTex
 
     const onChangeHandler = event => {
         dispatch({ type: 'CHANGE', val: event.target.value, validators: validators });
-        console.log(event.target.value);
-
     }
 
     const touchHandler = () => {
