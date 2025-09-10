@@ -1,12 +1,37 @@
+import { useEffect, useState } from "react"
+import axios from 'axios';
 import UsersList from "../components/UsersList"
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 
 const Users = () => {
-    const USERS = [
-        { id: 'u1', name: 'Max Schwarz', image: 'https://plus.unsplash.com/premium_photo-1689530775582-83b8abdb5020?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cmFuZG9tJTIwcGVyc29ufGVufDB8fDB8fHww', places: 3 },
-        { id: 'u2', name: 'Manu Schwarz', image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fHJhbmRvbSUyMHBlcnNvbnxlbnwwfHwwfHx8MA%3D%3D', places: 2 }
-    ]
+  const [loadedUsers, setLoadedUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+  useEffect(() => {
+    const effect = async () => {
+      setIsLoading(true)
+      try {
+        const res = await axios.get('http://localhost:5000/api/users');
+        console.log(res.data.users)
+        setLoadedUsers(res.data.users)
+      } catch (err) {
+        console.log(err)
+        setError(err?.response?.data.message || "something went wrong")
+      }
+      setIsLoading(false)
+    }
+    effect();
+  }, [])
+  console.log(loadedUsers)
   return (
-    <UsersList users={USERS}/>
+    <>
+    <ErrorModal error={error} onClear={() => setError(null)} />
+    {isLoading && <div className="center">
+      <LoadingSpinner />
+      </div>}
+    <UsersList users={loadedUsers} />
+    </>
   )
 }
 
