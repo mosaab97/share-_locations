@@ -9,6 +9,7 @@ import { useAuth } from '../../shared/context/authContext'
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import ErrorModal from '../../shared/components/UIElements/ErrorModal';
 import { useHttpClient } from '../../shared/hooks/http';
+import ImageUpload from '../../shared/components/FormElements/ImageUpload'
 
 function Auth() {
     const auth = useAuth();
@@ -29,11 +30,12 @@ function Auth() {
         event.preventDefault();
         let res;
         if (!isLoginMode) {
-            res = await sendRequest('http://localhost:5000/api/users/signup', 'POST', {
-                name: state.inputs.name.value,
-                email: state.inputs.email.value,
-                password: state.inputs.password.value
-            })
+            const formData = new FormData()
+            formData.append('name', state.inputs.name.value);
+            formData.append('email', state.inputs.email.value);
+            formData.append('password', state.inputs.password.value);
+            formData.append('image', state.inputs.image.value);
+            res = await sendRequest('http://localhost:5000/api/users/signup', 'POST', formData)
         } else {
             res = await sendRequest('http://localhost:5000/api/users/login', 'POST', {
                 email: state.inputs.email.value,
@@ -50,7 +52,8 @@ function Auth() {
         if (!isLoginMode) {
             setFormData({
                 ...state.inputs,
-                name: undefined
+                name: undefined,
+                image: undefined
             },
                 state.inputs.email.isValid && state.inputs.password.isValid
             );
@@ -60,6 +63,10 @@ function Auth() {
                 ...state.inputs,
                 name: {
                     value: '',
+                    isValid: false
+                },
+                image: {
+                    value: null,
                     isValid: false
                 }
             },
@@ -79,6 +86,7 @@ function Auth() {
                 onSubmit={authSubmitHandler}>
 
                 {!isLoginMode && <Input id="name" element="input" type="text" label="Name" validators={[VALIDATOR_MINLENGTH(3)]} errorText={"Please Enter a valid Name"} onInput={changeHandler} />}
+                {!isLoginMode && <ImageUpload id="image" center={true} onInput={changeHandler} errorText={"Please provide image"} />}
                 <Input id="email" element="input" type="email" label="E-Mail" validators={[VALIDATOR_EMAIL()]} errorText={"Please Enter a valid Email Address"} onInput={changeHandler} />
                 <Input id="password" element="input" type="password" label="Password" validators={[VALIDATOR_MINLENGTH(6)]} errorText={"Password is weak"} onInput={changeHandler} />
                 <Button type="submit" disabled={!state.isValid}>{isLoginMode ? 'Login' : 'SignUp'}</Button>
