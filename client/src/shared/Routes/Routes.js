@@ -10,7 +10,6 @@ import Auth from '../../user/containers/Auth';
 function Routes() {
     const auth = useAuth();
     let routes;
-
     if (auth.user) {
         routes = (
             <Switch>

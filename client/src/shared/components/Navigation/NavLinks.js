@@ -10,7 +10,7 @@ const NavLinks = () => {
         {
             auth.user && <>
                 <li>
-                    <NavLink to={`/u1/places`}>My Places</NavLink>
+                    <NavLink to={`/${auth.user.id}/places`}>My Places</NavLink>
                 </li>
                 <li>
                     <NavLink to="/places/new">Add Place</NavLink>

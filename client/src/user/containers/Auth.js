@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import axios from 'axios';
 import './UsersContainers.css'
 import Input from '../../shared/components/FormElements/Input'
 import Button from '../../shared/components/FormElements/Button'
@@ -9,12 +8,12 @@ import Card from '../../shared/components/UIElements/Card'
 import { useAuth } from '../../shared/context/authContext'
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import { useHttpClient } from '../../shared/hooks/http';
 
 function Auth() {
     const auth = useAuth();
     const [isLoginMode, setIsLoginMode] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState();
+    const { isLoading, error, sendRequest, clearError } = useHttpClient();
     const [state, changeHandler, setFormData] = useForm({
         email: {
             value: '',
@@ -29,29 +28,18 @@ function Auth() {
     const authSubmitHandler = async event => {
         event.preventDefault();
         let res;
-        setIsLoading(true);
         if (!isLoginMode) {
-            try {
-                res = await axios.post('http://localhost:5000/api/users/signup', {
-                    name: state.inputs.name.value,
-                    email: state.inputs.email.value,
-                    password: state.inputs.password.value
-                })
-
-            } catch (err) {
-                setError(err?.response?.data.message || "something went wrong")
-            }
+            res = await sendRequest('http://localhost:5000/api/users/signup', 'POST', {
+                name: state.inputs.name.value,
+                email: state.inputs.email.value,
+                password: state.inputs.password.value
+            })
         } else {
-            try {
-                res = await axios.post('http://localhost:5000/api/users/login', {
-                    email: state.inputs.email.value,
-                    password: state.inputs.password.value
-                })
-            } catch (err) {
-                setError(err?.response?.data.message || "something went wrong")
-            }
+            res = await sendRequest('http://localhost:5000/api/users/login', 'POST', {
+                email: state.inputs.email.value,
+                password: state.inputs.password.value
+            })
         }
-        setIsLoading(false)
 
         if (res) {
             auth.login(res.data.user);
@@ -81,10 +69,10 @@ function Auth() {
         setIsLoginMode(prevMode => !prevMode);
     }
 
-        return <>
-        <ErrorModal error={error} onClear={() => setError(null)}/>
+    return <>
+        <ErrorModal error={error} onClear={clearError} />
         <Card className='authentication'>
-            {isLoading && <LoadingSpinner asOverlay/>}
+            {isLoading && <LoadingSpinner asOverlay />}
             <h2>Login Required</h2>
             <hr />
             <form
@@ -92,13 +80,13 @@ function Auth() {
 
                 {!isLoginMode && <Input id="name" element="input" type="text" label="Name" validators={[VALIDATOR_MINLENGTH(3)]} errorText={"Please Enter a valid Name"} onInput={changeHandler} />}
                 <Input id="email" element="input" type="email" label="E-Mail" validators={[VALIDATOR_EMAIL()]} errorText={"Please Enter a valid Email Address"} onInput={changeHandler} />
-                <Input id="password" element="input" type="password" label="Password" validators={[VALIDATOR_MINLENGTH(5)]} errorText={"Password is weak"} onInput={changeHandler} />
+                <Input id="password" element="input" type="password" label="Password" validators={[VALIDATOR_MINLENGTH(6)]} errorText={"Password is weak"} onInput={changeHandler} />
                 <Button type="submit" disabled={!state.isValid}>{isLoginMode ? 'Login' : 'SignUp'}</Button>
             </form>
 
             <Button inverse onClick={switchModeHandler}>SWITCH TO {isLoginMode ? 'SignUp' : 'Login'}</Button>
         </Card>
-        </>
+    </>
 }
 
 export default Auth
