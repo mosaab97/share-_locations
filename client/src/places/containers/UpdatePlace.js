@@ -14,7 +14,7 @@ import { useAuth } from '../../shared/context/authContext'
 
 const UpdatePlace = () => {
     const history = useHistory()
-    const {user} = useAuth();
+    const {user, token} = useAuth();
     const { isLoading, error, sendRequest, clearError } = useHttpClient();
     const placeId = useParams().placeId;
     const [loadedPlace, setLoadedPlace] = useState();
@@ -74,7 +74,7 @@ const UpdatePlace = () => {
         const res = await sendRequest(`http://localhost:5000/api/places/${placeId}`, 'PATCH', {
             title: state.inputs.title.value,
             description: state.inputs.description.value,
-        })
+        }, { Authorization: `Bearer ${token}`})
         if(res) {
             history.push(`/${user.id}/places`)
         }

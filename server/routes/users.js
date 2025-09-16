@@ -1,12 +1,15 @@
 const express = require('express');
-const { getAllUsers, signup, login } = require('../controllers/users');
 const { check } = require('express-validator');
+
+const { getAllUsers, signup, login } = require('../controllers/users');
+const fileUpload = require('../middleware/fileUpload');
 
 const router = express.Router();
 
 router.get('/', getAllUsers);
 
 router.post('/signup',
+    fileUpload.single('image'),
     [
         check('name').not().isEmpty(),
         check('email').normalizeEmail().isEmail(),

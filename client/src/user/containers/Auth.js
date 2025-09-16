@@ -42,9 +42,8 @@ function Auth() {
                 password: state.inputs.password.value
             })
         }
-
         if (res) {
-            auth.login(res.data.user);
+            auth.login(res.data);
         }
     }
 

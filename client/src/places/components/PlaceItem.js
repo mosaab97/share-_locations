@@ -22,7 +22,7 @@ const PlaceItem = ({ id, image, title, description, address, coordinates, onDele
 
     const confirmDeleteHandler = async () => {
         setShowConfirmModal(false)
-        const res = await sendRequest(`http://localhost:5000/api/places/${id}`, 'DELETE')
+        const res = await sendRequest(`http://localhost:5000/api/places/${id}`, 'DELETE',null,  { Authorization: `Bearer ${auth.token}`})
         if(res) {
             onDelete(id)
         }

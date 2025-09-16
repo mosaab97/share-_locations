@@ -1,9 +1,10 @@
-const HttpError = require("../models/httpError");
 const { validationResult } = require('express-validator');
+const { default: mongoose } = require("mongoose");
+const fs = require('fs')
+const HttpError = require("../models/httpError");
 const getCoordsForAddress = require("../Util/location");
 const Place = require("../models/Place");
 const User = require('../models/user');
-const { default: mongoose } = require("mongoose");
 
 
 const getPlaceById = async (req, res, next) => {
@@ -54,7 +55,7 @@ const addNewPlace = async (req, res, next) => {
         description,
         address,
         location: coords,
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
+        image: req.file.path.replace(/\\/g, '/'),
         creator
     });
 
@@ -62,6 +63,7 @@ const addNewPlace = async (req, res, next) => {
     try {
         user = await User.findById(creator);
     } catch(err) {
+        console.log(err)
         return next(new HttpError("Creating place failed, please try again", 500))
     }
 
@@ -97,6 +99,8 @@ const updatePlace = async (req, res, next) => {
     } catch (err) {
         return next(new HttpError('Something went wrong, could not update place.', 500));
     }
+    if(place.creator.toString() !== req.user.userId) return next(new HttpError('Not Authorized.', 401))
+
     place.title = title;
     place.description = description;
 
@@ -121,6 +125,9 @@ const deletePlace = async (req, res, next) => {
     if (!place) {
         return next(new HttpError('Place not found.', 404));
     }
+    if(place.creator.id !== req.user.userId) return next(new HttpError('Not Authorized.', 401))
+
+    const imagePath = place.image;
 
     try {
         const sess = await mongoose.startSession();
@@ -128,10 +135,12 @@ const deletePlace = async (req, res, next) => {
         await place.deleteOne({ session: sess});
         place.creator.places.pull(place);
         await place.creator.save({ session: sess});
-        await sess.commitTransaction()
+        await sess.commitTransaction();
     } catch (err) {
         return next(new HttpError('Something went wrong, could not delete place.', 500));
     }
+
+    fs.unlink(imagePath, err => console.log(err));
 
     res.status(200).json({ message: 'Place deleted.' });
 }
