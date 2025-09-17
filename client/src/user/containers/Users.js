@@ -9,7 +9,7 @@ const Users = () => {
   const {isLoading, error, sendRequest, clearError} = useHttpClient();
   useEffect(() => {
     const effect = async () => {
-        const res = await sendRequest('http://localhost:5000/api/users');
+        const res = await sendRequest('/users');
         if(res){
           setLoadedUsers(res.data.users)
         }

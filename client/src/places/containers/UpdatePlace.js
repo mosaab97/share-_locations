@@ -32,7 +32,7 @@ const UpdatePlace = () => {
 
     useEffect(() => {
         const effect = async () => {
-            const res = await sendRequest(`http://localhost:5000/api/places/${placeId}`)
+            const res = await sendRequest(`/places/${placeId}`)
             if (res) {
                 setLoadedPlace(res.data.place)
                 setFormData({
@@ -71,7 +71,7 @@ const UpdatePlace = () => {
 
     const placeUpdateSubmitHandler = async event => {
         event.preventDefault();
-        const res = await sendRequest(`http://localhost:5000/api/places/${placeId}`, 'PATCH', {
+        const res = await sendRequest(`/places/${placeId}`, 'PATCH', {
             title: state.inputs.title.value,
             description: state.inputs.description.value,
         }, { Authorization: `Bearer ${token}`})

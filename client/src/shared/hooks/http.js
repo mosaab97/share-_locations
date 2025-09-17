@@ -13,7 +13,8 @@ export const useHttpClient = () => {
         };
     }, [])
     
-    const sendRequest = useCallback(async (url, method = "GET", data = null, headers = {}) => {
+    const sendRequest = useCallback(async (route, method = "GET", data = null, headers = {}) => {
+        const url = `${process.env.REACT_APP_BACKEND_HOST}/api${route}`
         setIsLoading(true);
         const httpAbortController = new AbortController();
         activeHttpRequest.current.push(httpAbortController);

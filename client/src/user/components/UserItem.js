@@ -8,7 +8,7 @@ function UserItem({ id, name, image, placesCount }) {
                 <Card className="user-item__content">
                     <Link to={`/${id}/places`}>
                         <div className="user-item__image">
-                            <Avatar image={`http://localhost:5000/${image}`} name={name} />
+                            <Avatar image={`${process.env.REACT_APP_BACKEND_HOST}/${image}`} name={name} />
                         </div>
                         <div className="user-item__info">
                             <h2>{name}</h2>

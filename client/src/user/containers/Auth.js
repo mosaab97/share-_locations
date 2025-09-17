@@ -35,9 +35,9 @@ function Auth() {
             formData.append('email', state.inputs.email.value);
             formData.append('password', state.inputs.password.value);
             formData.append('image', state.inputs.image.value);
-            res = await sendRequest('http://localhost:5000/api/users/signup', 'POST', formData)
+            res = await sendRequest('/users/signup', 'POST', formData)
         } else {
-            res = await sendRequest('http://localhost:5000/api/users/login', 'POST', {
+            res = await sendRequest('/users/login', 'POST', {
                 email: state.inputs.email.value,
                 password: state.inputs.password.value
             })

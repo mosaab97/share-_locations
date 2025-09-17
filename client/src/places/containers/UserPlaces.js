@@ -15,7 +15,7 @@ const UserPlaces = () => {
 
     useEffect(() => {
       const effect = async () => {
-        const res = await sendRequest(`http://localhost:5000/api/places/user/${userId}`)
+        const res = await sendRequest(`/places/user/${userId}`)
         if(res) {
           setPlaces(res.data.places)
         }

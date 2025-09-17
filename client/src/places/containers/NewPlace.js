@@ -13,7 +13,7 @@ import ImageUpload from '../../shared/components/FormElements/ImageUpload';
 
 const NewPlace = () => {
   const history = useHistory();
-  const { user, token } = useAuth()
+  const { token } = useAuth()
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [state, changeHandler] = useForm({
     title: {
@@ -35,9 +35,8 @@ const NewPlace = () => {
     formData.append('title', state.inputs.title.value);
     formData.append('description', state.inputs.description.value);
     formData.append('address', state.inputs.address.value);
-    formData.append('creator', user.id);
     formData.append('image', state.inputs.image.value);
-    const res = await sendRequest('http://localhost:5000/api/places', 'POST', formData, 
+    const res = await sendRequest('/places', 'POST', formData, 
       { Authorization: `Bearer ${token}`})
     if (res) history.push('/');
   }
